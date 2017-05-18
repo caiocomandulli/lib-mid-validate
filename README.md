@@ -75,6 +75,20 @@ request.validateBody({
 
 Here we are making sure that `order` is an array of at least length one and that each `item` and `quantity` in every item will be validated as well.
 
+We can use parameters in our validations as well.
+
+```javascript
+"start" : {
+	"greaterThan" : Date.now()
+},
+"end" : {
+	"greaterThanAttribute" : "start"
+}
+```
+
+In `greaterThan` we use our current date to validate that the start date of an event is later than now.
+And in `greaterThanAttribute` we use the name of another attribute to compare if the end date is after the start date.
+
 ### Validate Functions
 
 When using the main validate function you can specify the type of parameter you want validated by using the `body`, `path` and `query` attributes on your options object.
@@ -118,6 +132,65 @@ You can also use the specific functions `validateBody`, `validatePath`, `validat
 	}
 }
 ```
+
+### Existing Validators
+
+The currently existing validator are
+
+`required` fails if the field is missing
+`optional` mark this field as optional, which won't fail validation if missing, but won't be ignored either
+`numericOnly` fails if not a numeric value
+`validCnpj` checks if value is a CNPJ number*
+`phone` fails if not a numeric value*
+`email` checks if it is a valid email
+`document` fails if not a numeric value*
+`validCpf` checks if value is a CPF number*
+`date` checks if it is a valid date
+`arrayHasLength` checks if it is an array of at least length one
+`cep` fails if not a numeric value*
+`booleanOnly` checks if either true or false
+`floatOnly` checks if it is a valid float
+`intOnly` checks if it is a valid int
+`greaterThan` checks if it is greater than parameter
+`lessThan` checks if it is less than parameter
+`greaterThanAttribute` checks if it is greater than another field
+`lessThanAttribute` checks if it is less than another field
+
+`*` these validators have pre-validation formatting, meaning that the string passes through a special filter before being tested, such as in the `phone`, `cep` and `document`, what it does is it removes special characters such as `-/()` and afterwards test if is is a valid number.
+
+### Custom Validators and Formatting
+
+You can pass validators through an options object when adding your middleware.
+
+```javascript
+var options = {
+	customValidationFunctions : [myCustomValidation],
+	customFormatFunctions : [myCustomFormat]
+};
+app.use(require('validate')(options));
+```
+
+Validators and formatters always follow a function signature of `function(value, params)`, `value` will be the field value at time of validation, `params` will be the parameter specified at your validation options as in `"greaterThan" : 1`.
+
+By taking a look at the `phone` validator, we first specify a formatter:
+
+```javascript
+"phone" : function(value, params) {
+		var phone = / |\(|\)|\+|\-/g;
+		return value.replace(phone, "");
+}
+```
+
+This will guarantee that the field won't have special characters common to a phone number that would fail our validation.
+
+```javascript
+"phone" : function(value, params) {
+		var numeric = /^[0-9]+$/;
+		return numeric.test(value);
+}
+```
+
+Finally we test if the field is a number.
 
 ### The Results
 
