@@ -230,6 +230,20 @@ var handleAttribute = function(name, rules, content, parentContent, parentError)
 	}
 };
 var handleSingleValue = function(splitName, currName, name, rules, content, parentContent, parentError) {
+	if(!content)
+	{
+		if(rules.optional !== undefined)
+		{
+			return true;
+		} else {
+			var errorMessage = "Invalid Field.";
+			if (rules.required !== undefined && rules.required.message !== undefined) {
+				errorMessage = rules.required.message;
+			}
+			parentError[currName] = errorMessage;
+			return false;
+		}
+	}
 	if (splitName.length > 1) {
 		var stubError = parentError[currName] ? parentError[currName] : {};
 		var firsDot = name.indexOf(".");
